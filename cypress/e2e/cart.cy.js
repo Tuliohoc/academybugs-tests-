@@ -22,9 +22,7 @@ describe('cart', () => {
       cy.url().should('include', '/my-cart/');
 
       cy.get('.ec_cartitem_row:visible', { timeout: 15000 }).first().should('exist');
-      cy.get('body').then(($body) => {
-        expect($body.text().toLowerCase()).to.include(title.toLowerCase());
-      });
+      cy.get('.ec_cartitem_title:visible', { timeout: 15000 }).first().should('contain.text', title);
       cy.get('.ec_cartitem_row:visible').first().should('not.contain', '0.00');
     });
   });
