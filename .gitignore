@@ -1,0 +1,10 @@
+node_modules/
+allure-results/
+allure-results-cypress/
+reports/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+playwright-report/
+test-results/
+.DS_Store

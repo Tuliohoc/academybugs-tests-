@@ -1,0 +1,21 @@
+{
+  "name": "academybugs-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E2E suite for https://academybugs.com (Playwright + Cypress) with Allure reports",
+  "scripts": {
+    "test": "npm run test:playwright && npm run test:cypress",
+    "test:playwright": "playwright test",
+    "test:cypress": "cypress run",
+    "report:playwright": "allure generate --config allure.pw.yml -o reports/playwright",
+    "report:cypress": "allure generate --config allure.cy.yml -o reports/cypress",
+    "report": "npm run report:playwright && npm run report:cypress"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "allure": "^3.19.1",
+    "allure-cypress": "^3.13.0",
+    "allure-playwright": "^3.13.0",
+    "cypress": "^15.2.0"
+  }
+}
