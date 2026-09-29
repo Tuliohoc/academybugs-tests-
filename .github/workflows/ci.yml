@@ -38,6 +38,15 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: Upload the raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-playwright
+          path: allure-results
+          retention-days: 7
+          if-no-files-found: warn
+
   cypress:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -68,6 +77,15 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
 
+      - name: Upload the raw results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-cypress
+          path: allure-results-cypress
+          retention-days: 7
+          if-no-files-found: warn
+
   publish:
     # The suites can go red — a planted bug is a finding, not a broken pipeline
     # — so the site is published either way.
@@ -82,22 +100,42 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download both reports
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download the Playwright report
         uses: actions/download-artifact@v4
         with:
-          pattern: allure-*
+          name: allure-playwright
+          path: site/playwright
+
+      - name: Download the Cypress report
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-cypress
+          path: site/cypress
+
+      - name: Download the raw results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: results-*
           merge-multiple: false
 
-      - name: Lay them out as one site
+      # The numbers the lab draws are rewritten from this run, so the page can
+      # never drift away from the report it embeds. If a job died before
+      # writing results, the committed numbers stay.
+      - name: Write the Test Lab numbers from this run
         run: |
-          mkdir -p site
-          mv allure-playwright site/playwright
-          mv allure-cypress site/cypress
-
-      - name: Turn Pages on if the repository has never published
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+          if [ -d results-playwright ] && [ -d results-cypress ]; then
+            node scripts/lab-data.mjs results-playwright playwright pw.json
+            node scripts/lab-data.mjs results-cypress cypress cy.json
+            node scripts/sync-lab.mjs pw.json cy.json
+          else
+            echo "raw results missing, keeping the numbers already in site/assets/js/lab.js"
+          fi
 
       - uses: actions/upload-pages-artifact@v3
         with:

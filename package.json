@@ -9,7 +9,8 @@
     "test:cypress": "cypress run",
     "report:playwright": "allure generate --config allure.pw.yml -o reports/playwright",
     "report:cypress": "allure generate --config allure.cy.yml -o reports/cypress",
-    "report": "npm run report:playwright && npm run report:cypress"
+    "report": "npm run report:playwright && npm run report:cypress",
+    "lab": "node scripts/serve.mjs 4173 site"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

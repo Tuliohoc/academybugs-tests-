@@ -1,19 +1,21 @@
 #!/usr/bin/env node
 /* Turns an Allure results folder into the payload the portfolio Test Lab draws.
 
-   node scripts/lab-data.mjs allure-results playwright
-   node scripts/lab-data.mjs allure-results-cypress cypress
+   node scripts/lab-data.mjs allure-results playwright [playwright.json]
+   node scripts/lab-data.mjs allure-results-cypress cypress [cypress.json]
 
-   Everything it prints comes from the run: names, statuses, durations, steps,
-   assertions, the failing message and the attachments. Nothing is invented —
-   where a framework does not record something (Cypress has no assertion
-   steps), the field stays empty instead of being filled in. */
+   The payload goes to stdout, or to the file given as the fourth argument, so
+   the JSON is always written as UTF-8 whatever shell calls it. Everything in it
+   comes from the run: names, statuses, durations, steps, assertions, the failing
+   message and the attachments. Nothing is invented — where a framework does not
+   record something (Cypress has no assertion steps), the field stays empty
+   instead of being filled in. */
 import fs from 'node:fs';
 import path from 'node:path';
 
-const [dir, framework] = process.argv.slice(2);
+const [dir, framework, outFile] = process.argv.slice(2);
 if (!dir || !framework) {
-  console.error('usage: node scripts/lab-data.mjs <results-dir> <playwright|cypress>');
+  console.error('usage: node scripts/lab-data.mjs <results-dir> <playwright|cypress> [out.json]');
   process.exit(1);
 }
 
@@ -156,4 +158,10 @@ const payload = {
   tests,
 };
 
-process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+const json = `${JSON.stringify(payload, null, 2)}\n`;
+if (outFile) {
+  fs.writeFileSync(outFile, json);
+  console.error(`${outFile}: ${total} tests, ${passed} passed, ${failed} failed, ${payload.rate}`);
+} else {
+  process.stdout.write(json);
+}

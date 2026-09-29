@@ -8,3 +8,7 @@ cypress/downloads/
 playwright-report/
 test-results/
 .DS_Store
+site/playwright/
+site/cypress/
+pw.json
+cy.json

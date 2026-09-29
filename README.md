@@ -11,6 +11,11 @@ with 25 planted bugs — written twice on purpose:
 Both runs report into **Allure Report 3**, so one command produces the report a
 QA engineer would actually hand over.
 
+The repository also publishes the **Test Lab** itself — the page that runs the
+suites, draws the results and embeds the published report — at
+<https://tuliohoc.github.io/academybugs-tests-/>. The portfolio links there; it
+does not keep a copy of the screen.
+
 ## Run it
 
 ```bash
@@ -22,7 +27,34 @@ npm run test:cypress      # Cypress + allure-results-cypress/
 
 npm run report            # both reports into reports/playwright and reports/cypress
 npx allure open reports/playwright            # or open reports/cypress
+
+npm run lab               # serve site/ on http://127.0.0.1:4173
 ```
+
+## The Test Lab page
+
+`site/` is the folder GitHub Pages publishes: the lab page, its stylesheet,
+scripts and images. The reports are dropped beside it by the pipeline, in
+`site/playwright` and `site/cypress`, which is why the report address inside
+the page is the relative `./playwright/`.
+
+The numbers on the page come out of the results of the run, never out of
+somebody's head:
+
+```bash
+node scripts/lab-data.mjs allure-results playwright pw.json
+node scripts/lab-data.mjs allure-results-cypress cypress cy.json
+node scripts/sync-lab.mjs pw.json cy.json     # rewrites site/assets/js/lab.js
+```
+
+`sync-lab.mjs` leaves the API suite alone — there is no published report for
+it — and the pipeline runs the same three commands before uploading the site,
+so the page and the report it embeds can never disagree.
+
+`tests/lab.spec.ts` opens the page through `scripts/serve.mjs site` (started by
+the `webServer` entry in `playwright.config.ts`) and checks the shape of what
+it shows: counts are numbers, rates end in %, the planted bug opens into steps,
+error and evidence, and the interface speaks PT/EN without moving the artifacts.
 
 ## Reports
 
@@ -49,11 +81,18 @@ so a planted bug shows up as a red test instead of being papered over:
 |-- cypress/
 |   |-- e2e/                    # Cypress specs
 |   \-- support/e2e.js          # plugin import + overlay dismissal
+|-- site/                       # the published Test Lab page and its assets
+|   |-- index.html
+|   \-- assets/                 # css, js (lab.js + i18n + theme), img
+|-- scripts/
+|   |-- lab-data.mjs            # Allure results -> the payload the lab draws
+|   |-- sync-lab.mjs            # payload -> site/assets/js/lab.js
+|   \-- serve.mjs               # static server for the page and its tests
 |-- playwright.config.ts
 |-- cypress.config.js
 |-- allure.pw.yml, allure.cy.yml
 |-- reports/                    # generated HTML, gitignored
-\-- .github/workflows/ci.yml    # both runners, both reports, both as artifacts
+\-- .github/workflows/ci.yml    # both runners, both reports, publish to Pages
 ```
 
 ## Notes for whoever runs it next
