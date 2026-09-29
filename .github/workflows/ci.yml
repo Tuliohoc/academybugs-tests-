@@ -67,3 +67,36 @@ jobs:
           path: reports/cypress
           retention-days: 30
           if-no-files-found: warn
+
+  publish:
+    # The suites can go red — a planted bug is a finding, not a broken pipeline
+    # — so the site is published either way.
+    needs: [playwright, cypress]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download both reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-*
+          merge-multiple: false
+
+      - name: Lay them out as one site
+        run: |
+          mkdir -p site
+          mv allure-playwright site/playwright
+          mv allure-cypress site/cypress
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
