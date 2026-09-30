@@ -147,8 +147,9 @@ jobs:
       # actions/upload-pages-artifact always names its artifact "github-pages"
       # without an overwrite option, so re-running this job leaves a stale
       # artifact from the previous attempt behind and deploy-pages then finds
-      # two of them. Package the artifact ourselves so we can pass
-      # overwrite: true and keep re-runs green.
+      # two of them. Package the artifact ourselves, mirroring the tar step
+      # from https://github.com/actions/upload-pages-artifact/blob/main/action.yml,
+      # so we can pass overwrite: true below and keep re-runs green.
       - name: Archive the site for Pages
         run: |
           tar \
