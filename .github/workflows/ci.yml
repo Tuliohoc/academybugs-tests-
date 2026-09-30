@@ -101,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: write
       pages: write
       id-token: write
     environment:
@@ -143,6 +144,21 @@ jobs:
           else
             echo "raw results missing, keeping the numbers already in site/assets/js/lab.js"
           fi
+
+      # Re-running only this job leaves another artifact called github-pages
+      # behind, and deploy-pages refuses to choose between them. Whatever the
+      # attempts of this run uploaded before goes, so one upload is all this
+      # run ever holds.
+      - name: Drop the pages artifacts left by earlier attempts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ids=$(gh api --paginate "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            --jq '.artifacts[] | select(.name == "github-pages") | .id' || true)
+          for id in $ids; do
+            echo "deleting stale github-pages artifact $id"
+            gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id" || true
+          done
 
       - uses: actions/upload-pages-artifact@v3
         with:
