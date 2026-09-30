@@ -144,9 +144,29 @@ jobs:
             echo "raw results missing, keeping the numbers already in site/assets/js/lab.js"
           fi
 
-      - uses: actions/upload-pages-artifact@v3
+      # actions/upload-pages-artifact always names its artifact "github-pages"
+      # without an overwrite option, so re-running this job leaves a stale
+      # artifact from the previous attempt behind and deploy-pages then finds
+      # two of them. Package the artifact ourselves so we can pass
+      # overwrite: true and keep re-runs green.
+      - name: Archive the site for Pages
+        run: |
+          tar \
+            --dereference --hard-dereference \
+            --directory site \
+            -cvf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            .
+
+      - name: Upload the Pages artifact
+        uses: actions/upload-artifact@v4
         with:
-          path: site
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
 
       - id: deployment
         uses: actions/deploy-pages@v4
