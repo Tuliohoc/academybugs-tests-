@@ -23,7 +23,14 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run the Playwright suite
+        # The planted bug fails on purpose. The suite's verdict is not the
+        # pipeline's: the results are still written, and the gate below is
+        # what decides whether this job is allowed to go green.
+        continue-on-error: true
         run: npm run test:playwright
+
+      - name: Fail only if it was not the planted bug
+        run: node scripts/ci-gate.mjs
 
       - name: Render the Allure report
         if: always()

@@ -8,10 +8,14 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   timeout: 45_000,
   expect: { timeout: 10_000 },
-  reporter: [
-    ['list'],
-    ['allure-playwright', { resultsDir: 'allure-results', detail: 'steps' }],
-  ],
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['allure-playwright', { resultsDir: 'allure-results', detail: 'steps' }],
+        // the gate in CI reads this: it is what says which tests went red
+        ['json', { outputFile: 'reports/results.json' }],
+      ]
+    : [['list'], ['allure-playwright', { resultsDir: 'allure-results', detail: 'steps' }]],
   use: {
     baseURL: 'https://academybugs.com',
     trace: 'retain-on-failure',

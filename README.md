@@ -73,6 +73,12 @@ so a planted bug shows up as a red test instead of being papered over:
   17 price tags. `catalog › every product in the catalog shows a title, a price
   and a way to buy` fails on purpose until the site is fixed.
 
+That red is a finding, so it is not allowed to break the pipeline either:
+`scripts/ci-gate.mjs` reads the JSON report of the run and fails the job only
+when something **other** than that test went red. The failure itself is kept
+where it matters — in the results, in the Allure report and in the numbers the
+Test Lab draws from them.
+
 ## Layout
 
 ```
@@ -87,6 +93,7 @@ so a planted bug shows up as a red test instead of being papered over:
 |-- scripts/
 |   |-- lab-data.mjs            # Allure results -> the payload the lab draws
 |   |-- sync-lab.mjs            # payload -> site/assets/js/lab.js
+|   |-- ci-gate.mjs             # red only when it was not the planted bug
 |   \-- serve.mjs               # static server for the page and its tests
 |-- playwright.config.ts
 |-- cypress.config.js
