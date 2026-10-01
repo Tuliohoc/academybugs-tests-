@@ -579,6 +579,18 @@ function setBusy(busy){
   pick.querySelectorAll("button[data-suite]").forEach(b => { b.disabled = busy; });
 }
 
+function bring(el){
+  if (!el) return;
+  const bar = document.getElementById("bar");
+  const foot = document.querySelector(".foot");
+  const top = (bar ? bar.offsetHeight : 64) + 16;
+  const bottom = window.innerHeight - (foot && getComputedStyle(foot).position === "fixed" ? foot.offsetHeight : 0) - 12;
+  const rect = el.getBoundingClientRect();
+  if (rect.top >= top && rect.bottom <= bottom) return;
+  const y = Math.max(0, Math.min(rect.top + window.scrollY - top, document.documentElement.scrollHeight - window.innerHeight));
+  window.scrollTo({ top: y, behavior: reduce ? "instant" : "smooth" });
+}
+
 function drawRunner(){
   if (!current) return;
   const s = SUITES[current];
@@ -663,6 +675,7 @@ function finish(){
   drawReport();
   drawDetail();
   setBusy(false);
+  bring(runDone);
 }
 
 function run(key){
@@ -680,6 +693,7 @@ function run(key){
   repList.innerHTML = "";
   repNote.textContent = text("ab.report.empty");
   drawDetail();
+  bring(runner);
 
   const started = Date.now();
   timer = setInterval(() => {
