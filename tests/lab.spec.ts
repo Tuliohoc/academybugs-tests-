@@ -69,6 +69,20 @@ test('Open Full Report points at the published Allure run', async ({ page }) => 
   await expect(page.locator('#allure')).toBeHidden();
 });
 
+test('the embedded report opens in the language the lab is in', async ({ page }) => {
+  await page.goto('/');
+  await runSuite(page, 'playwright');
+
+  await page.locator('[data-lang="pt"]').click();
+  await page.locator('#openFull').click();
+  await expect(page.locator('#allureFrame')).toHaveAttribute('src', './playwright/');
+  expect(await page.evaluate(() => localStorage.getItem('currentLocale'))).toBe('pt');
+
+  // switching the language while the report is open moves the report too
+  await page.locator('[data-lang="en"]').click();
+  expect(await page.evaluate(() => localStorage.getItem('currentLocale'))).toBe('en');
+});
+
 test('a suite without a published report falls back to the text note', async ({ page }) => {
   await page.goto('/');
   await runSuite(page, 'api');

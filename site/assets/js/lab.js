@@ -727,13 +727,32 @@ function closeAllure(){
   openFull.setAttribute("aria-expanded", "false");
 }
 
+/* The report is served from this same origin and reads its language from the
+   shared localStorage key "currentLocale". Writing it here means the report
+   opens in whichever language the lab is showing, and follows the visitor
+   when they switch while it is already open. */
+function allureLocale(){ return window.I18n ? window.I18n.lang() : "en"; }
+function loadAllure(src){
+  const locale = allureLocale();
+  try { localStorage.setItem("currentLocale", locale); } catch (e) {}
+  if (allureFrame.getAttribute("src") !== src){
+    allureFrame.dataset.locale = locale;
+    allureFrame.src = src;
+    return;
+  }
+  if (allureFrame.dataset.locale !== locale){
+    allureFrame.dataset.locale = locale;
+    if (allureFrame.contentWindow) allureFrame.contentWindow.location.reload();
+  }
+}
+
 runAgain.addEventListener("click", () => { if (current) run(current); });
 
 openFull.addEventListener("click", () => {
   const s = SUITES[current];
   if (!s || !s.allure){ fullNote.hidden = !fullNote.hidden; return; }
   if (allure && !allure.hidden){ closeAllure(); return; }
-  if (!allureFrame.getAttribute("src")) allureFrame.src = s.allure;
+  loadAllure(s.allure);
   drawAllureMeta();
   allure.hidden = false;
   openFull.setAttribute("aria-expanded", "true");
@@ -771,6 +790,9 @@ if (window.I18n){
     drawReport();
     drawDetail();
     drawAllureMeta();
+    if (allure && !allure.hidden && allureFrame.getAttribute("src")){
+      loadAllure(allureFrame.getAttribute("src"));
+    }
   });
 }
 })();
